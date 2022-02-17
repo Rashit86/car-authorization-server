@@ -26,10 +26,13 @@ public class AuthServerConfig
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         clients.inMemory()
-                //в проде так не делать, т.к такой грант тайп предполает, что логин/пароль пользователя
-                // видит client, а это не безопасно
-                .withClient("rentCarRequest")
-                .secret("rentCarRequestSecret")
+                .withClient("rentCarClient")
+                .secret("rentCarSecret")
+                .authorizedGrantTypes("password")
+                .scopes("write")
+                .and()
+                .withClient("s3ToKafkaClient")
+                .secret("s3ToKafkaSecret")
                 .authorizedGrantTypes("password")
                 .scopes("write");
     }
@@ -42,8 +45,8 @@ public class AuthServerConfig
     }
 
     @Override
-    public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
-        security.tokenKeyAccess("isAuthenticated()"); // isAuthenticated() permitAll()
+    public void configure(AuthorizationServerSecurityConfigurer security) {
+        security.tokenKeyAccess("isAuthenticated()");
     }
 
     @Bean

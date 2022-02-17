@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,15 +17,20 @@ public class WebSecurityConfig
 
     @Bean
     public UserDetailsService uds() {
-        var uds = new InMemoryUserDetailsManager();
+        InMemoryUserDetailsManager detailsManager = new InMemoryUserDetailsManager();
 
-        var u1 = User.withUsername("john")
+        UserDetails carUserDetails = User.withUsername("john")
                 .password("12345")
                 .authorities("write")
                 .build();
 
-        uds.createUser(u1);
-        return uds;
+        detailsManager.createUser(carUserDetails);
+        UserDetails s3ToTopicUserDetails = User.withUsername("s3ToKafka")
+                .password("12345")
+                .authorities("write")
+                .build();
+        detailsManager.createUser(s3ToTopicUserDetails);
+        return detailsManager;
     }
 
     @Bean
