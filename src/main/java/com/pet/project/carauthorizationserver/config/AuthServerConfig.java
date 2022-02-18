@@ -1,6 +1,7 @@
 package com.pet.project.carauthorizationserver.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -17,24 +18,40 @@ import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFacto
 
 @Configuration
 @EnableAuthorizationServer
-public class AuthServerConfig
-        extends AuthorizationServerConfigurerAdapter {
+public class AuthServerConfig extends AuthorizationServerConfigurerAdapter {
+
+    private static final String KEY_PAIR_ALIAS = "cars";
+    private static final String KEY_PAIR_CLASS_PATH = "cars.jks";
+    private static final String PASSWORD_GRANT_TYPE = "password";
+    private static final String RENT_CAR_CLIENT = "rentCarClient";
+    private static final String S3_TO_KAFKA_CLIENT = "s3ToKafkaClient";
+    private static final String TOKEN_KEY_ACCESS = "isAuthenticated()";
+    private static final String WRITE_SCOPE = "write";
+
+    @Value("${car-authorization-server.key-pair-password}")
+    private String keyPairPassword;
+
+    @Value("${car-authorization-server.applications.rent-car.client-secret}")
+    private String rentCarSecret;
+
+    @Value("${car-authorization-server.applications.s3-to-kafka.client-secret}")
+    private String s3ToKafkaSecret;
 
     @Autowired
-    public AuthenticationManager authenticationManager;
+    private AuthenticationManager authenticationManager;
 
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         clients.inMemory()
-                .withClient("rentCarClient")
-                .secret("rentCarSecret")
-                .authorizedGrantTypes("password")
-                .scopes("write")
+                .withClient(RENT_CAR_CLIENT)
+                .secret(rentCarSecret)
+                .authorizedGrantTypes(PASSWORD_GRANT_TYPE)
+                .scopes(WRITE_SCOPE)
                 .and()
-                .withClient("s3ToKafkaClient")
-                .secret("s3ToKafkaSecret")
-                .authorizedGrantTypes("password")
-                .scopes("write");
+                .withClient(S3_TO_KAFKA_CLIENT)
+                .secret(s3ToKafkaSecret)
+                .authorizedGrantTypes(PASSWORD_GRANT_TYPE)
+                .scopes(WRITE_SCOPE);
     }
 
     @Override
@@ -46,7 +63,7 @@ public class AuthServerConfig
 
     @Override
     public void configure(AuthorizationServerSecurityConfigurer security) {
-        security.tokenKeyAccess("isAuthenticated()");
+        security.tokenKeyAccess(TOKEN_KEY_ACCESS);
     }
 
     @Bean
@@ -60,11 +77,11 @@ public class AuthServerConfig
 
         KeyStoreKeyFactory keyFactory =
                 new KeyStoreKeyFactory(
-                        new ClassPathResource("cars.jks"),
-                        "cars123".toCharArray()
+                        new ClassPathResource(KEY_PAIR_CLASS_PATH),
+                        keyPairPassword.toCharArray()
                 );
 
-        conv.setKeyPair(keyFactory.getKeyPair("cars"));
+        conv.setKeyPair(keyFactory.getKeyPair(KEY_PAIR_ALIAS));
 
         return conv;
     }

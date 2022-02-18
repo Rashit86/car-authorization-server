@@ -1,4 +1,12 @@
 server:
   port: 2227
 
-
+car-authorization-server:
+  key-pair-password: cars123
+  applications:
+    rent-car:
+      user-password: 12345
+      client-secret: rentCarSecret
+    s3-to-kafka:
+      user-password: 12345
+      client-secret: s3ToKafkaSecret
